@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - SLMS</title>
+    <style>
+        * { padding: 0; margin: 0; box-sizing: border-box; }
+        body {
+            font-family: "Inter", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(0, 78, 155, 0.95);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { height: 50px; }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .notification-card {
+            background: rgba(255,255,255,0.95);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+        .notification-card.success { border-left-color: #28a745; }
+        .notification-card.warning { border-left-color: #ffc107; }
+        .notification-card.danger { border-left-color: #dc3545; }
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .notification-title { font-weight: bold; color: #333; }
+        .notification-time { color: #666; font-size: 0.9rem; }
+        .notification-body { color: #555; }
+        .mark-read { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 0.3rem 0.8rem; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 0.8rem;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <img src="Sri-Eshwar-College-Of-Engineering.png" alt="College Logo" class="logo">
+        <div>
+            <a href="dashboard.html" style="color: white; text-decoration: none; margin-right: 1rem;">Dashboard</a>
+            <button onclick="logout()" style="background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 style="color: white; margin-bottom: 2rem;">Notifications</h1>
+        <div id="notificationsList">
+            <!-- Notifications will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        function loadNotifications() {
+            const user = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+            const userNotifications = notifications.filter(n => n.userId === user.email);
+            
+            const container = document.getElementById('notificationsList');
+            
+            if (userNotifications.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h2>No notifications</h2>
+                        <p>You're all caught up!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = userNotifications.map((notification, index) => `
+                <div class="notification-card ${notification.type}">
+                    <div class="notification-header">
+                        <div class="notification-title">${notification.title}</div>
+                        <div>
+                            <span class="notification-time">${new Date(notification.date).toLocaleString()}</span>
+                            ${!notification.read ? '<button class="mark-read" onclick="markAsRead(' + index + ')">Mark as Read</button>' : ''}
+                        </div>
+                    </div>
+                    <div class="notification-body">${notification.message}</div>
+                </div>
+            `).join('');
+        }
+
+        function markAsRead(index) {
+            const user = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+            
+            const userNotificationIndex = notifications.findIndex((n, i) => 
+                n.userId === user.email && i === index
+            );
+            
+            if (userNotificationIndex !== -1) {
+                notifications[userNotificationIndex].read = true;
+                localStorage.setItem('notifications', JSON.stringify(notifications));
+                loadNotifications();
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('currentUser');
+            window.location.href = 'loginpage.html';
+        }
+
+        // Add sample notifications for demo
+        function addSampleNotifications() {
+            const user = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+            
+            if (notifications.length === 0) {
+                const sampleNotifications = [
+                    {
+                        userId: user.email,
+                        title: 'Welcome to SLMS',
+                        message: 'Welcome to the Student Leave Management System. You can now submit and track your leave requests.',
+                        type: 'success',
+                        date: new Date().toISOString(),
+                        read: false
+                    },
+                    {
+                        userId: user.email,
+                        title: 'System Update',
+                        message: 'The system has been updated with new features. Check out the dashboard for more information.',
+                        type: 'info',
+                        date: new Date(Date.now() - 86400000).toISOString(),
+                        read: false
+                    }
+                ];
+                
+                localStorage.setItem('notifications', JSON.stringify(sampleNotifications));
+            }
+        }
+
+        // Check if user is logged in
+        const user = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        if (!user.email) {
+            window.location.href = 'loginpage.html';
+        }
+
+        addSampleNotifications();
+        loadNotifications();
+    </script>
+</body>
+</html>

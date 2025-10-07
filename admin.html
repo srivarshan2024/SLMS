@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SLMS</title>
+    <style>
+        * { padding: 0; margin: 0; box-sizing: border-box; }
+        body {
+            font-family: "Inter", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(0, 78, 155, 0.95);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { height: 50px; }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .admin-card {
+            background: rgba(255,255,255,0.95);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 2rem;
+        }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .tab {
+            padding: 1rem 2rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .tab.active { background: #0056b3; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .data-table th, .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .data-table th { background: #f8f9fa; }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0.2rem;
+        }
+        .btn-approve { background: #28a745; color: white; }
+        .btn-reject { background: #dc3545; color: white; }
+        .btn-delete { background: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <img src="Sri-Eshwar-College-Of-Engineering.png" alt="College Logo" class="logo">
+        <div>
+            <a href="dashboard.html" style="color: white; text-decoration: none; margin-right: 1rem;">Dashboard</a>
+            <button onclick="logout()" style="background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="admin-card">
+            <h1>Admin Panel</h1>
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('users')">Users</button>
+                <button class="tab" onclick="showTab('requests')">Leave Requests</button>
+                <button class="tab" onclick="showTab('analytics')">Analytics</button>
+            </div>
+
+            <div id="users" class="tab-content active">
+                <h2>User Management</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable"></tbody>
+                </table>
+            </div>
+
+            <div id="requests" class="tab-content">
+                <h2>Leave Requests</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTable"></tbody>
+                </table>
+            </div>
+
+            <div id="analytics" class="tab-content">
+                <h2>System Analytics</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="background: #e3f2fd; padding: 1rem; border-radius: 10px; text-align: center;">
+                        <h3 id="totalUsers">0</h3>
+                        <p>Total Users</p>
+                    </div>
+                    <div style="background: #fff3e0; padding: 1rem; border-radius: 10px; text-align: center;">
+                        <h3 id="totalRequests">0</h3>
+                        <p>Total Requests</p>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 1rem; border-radius: 10px; text-align: center;">
+                        <h3 id="approvedCount">0</h3>
+                        <p>Approved</p>
+                    </div>
+                    <div style="background: #ffebee; padding: 1rem; border-radius: 10px; text-align: center;">
+                        <h3 id="pendingCount">0</h3>
+                        <p>Pending</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'users') loadUsers();
+            if (tabName === 'requests') loadRequests();
+            if (tabName === 'analytics') loadAnalytics();
+        }
+
+        function loadUsers() {
+            const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
+            const tbody = document.getElementById('usersTable');
+            
+            tbody.innerHTML = accounts.map(user => `
+                <tr>
+                    <td>${user.email}</td>
+                    <td>${user.userType}</td>
+                    <td>${user.status || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-delete" onclick="deleteUser('${user.email}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadRequests() {
+            const requests = JSON.parse(localStorage.getItem('leaveRequests') || '[]');
+            const tbody = document.getElementById('requestsTable');
+            
+            tbody.innerHTML = requests.map((req, index) => `
+                <tr>
+                    <td>${req.user}</td>
+                    <td>${req.type}</td>
+                    <td>${new Date(req.date).toLocaleDateString()}</td>
+                    <td>${req.status}</td>
+                    <td>
+                        <button class="btn btn-approve" onclick="updateRequestStatus(${index}, 'Approved')">Approve</button>
+                        <button class="btn btn-reject" onclick="updateRequestStatus(${index}, 'Rejected')">Reject</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadAnalytics() {
+            const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
+            const requests = JSON.parse(localStorage.getItem('leaveRequests') || '[]');
+            
+            document.getElementById('totalUsers').textContent = accounts.length;
+            document.getElementById('totalRequests').textContent = requests.length;
+            document.getElementById('approvedCount').textContent = requests.filter(r => r.status === 'Approved').length;
+            document.getElementById('pendingCount').textContent = requests.filter(r => r.status === 'Pending').length;
+        }
+
+        function deleteUser(email) {
+            if (confirm('Delete this user?')) {
+                let accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
+                accounts = accounts.filter(acc => acc.email !== email);
+                localStorage.setItem('accounts', JSON.stringify(accounts));
+                loadUsers();
+            }
+        }
+
+        function updateRequestStatus(index, status) {
+            let requests = JSON.parse(localStorage.getItem('leaveRequests') || '[]');
+            requests[index].status = status;
+            localStorage.setItem('leaveRequests', JSON.stringify(requests));
+            loadRequests();
+        }
+
+        function logout() {
+            sessionStorage.removeItem('currentUser');
+            window.location.href = 'loginpage.html';
+        }
+
+        // Check admin access
+        const user = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        if (!user.email || !['HOD', 'Warden'].includes(user.userType)) {
+            alert('Admin access required');
+            window.location.href = 'dashboard.html';
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>
