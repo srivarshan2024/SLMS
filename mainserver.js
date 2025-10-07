@@ -21,6 +21,14 @@ app.get('^/$|/loginpage(.html)?',(req,res)=>{
     res.sendFile(join(__dirname,'loginpage.html'))
 })
 
+app.get('^/$|/signup(.html)?',(req,res)=>{
+    res.sendFile(join(__dirname,'signup.html'))
+})
+
+app.get('^/$|/changepassword(.html)?',(req,res)=>{
+    res.sendFile(join(__dirname,'changepassword.html'))
+})
+
 app.get('^/$|/loginpage/hostellerformselection(.html)?',(req,res)=>{
     res.sendFile(join(__dirname,'hostellerformselection.html'))
 })

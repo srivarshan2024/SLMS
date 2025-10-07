@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account</title>
+    <style>
+        * { padding: 0; margin: 0; box-sizing: border-box; }
+        body {
+            height: 100vh;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('Desktop - 43.png'); 
+            background-repeat: no-repeat; 
+            background-position: center;
+            background-attachment: fixed;
+            background-size: cover;
+        }
+        #navbar {
+            width: 100%;
+            height: 55px;
+            background-color: #004E9B;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+        }
+        #collegelogo { height: 55px; }
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            width: 450px;
+            border-radius: 10px;
+            text-align: center;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 80px;
+        }
+        .form-group { margin: 15px 0; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        .buttons { display: flex; justify-content: space-around; margin-top: 20px; }
+        .buttons button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .cancel { background-color: #f0f0f0; color: #333; }
+        .signup { background-color: #007bff; color: white; }
+        .link { margin-top: 15px; }
+        .link a { color: #007bff; text-decoration: none; }
+        #msg { color: red; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div id="navbar">
+        <img id="collegelogo" src="Sri-Eshwar-College-Of-Engineering.png" alt="College Logo">
+    </div>
+    <div class="container">
+        <h2>Create Account</h2>
+        <div class="form-group">
+            <label>User Type:</label>
+            <select id="userType" onchange="updateEmailPlaceholder()">
+                <option value="Student">Student</option>
+                <option value="Faculty">Faculty</option>
+                <option value="HOD">HOD</option>
+                <option value="Warden">Warden</option>
+            </select>
+        </div>
+        <div class="form-group" id="statusGroup">
+            <label>Status:</label>
+            <select id="status">
+                <option value="dayscholar">Day Scholar</option>
+                <option value="hosteller">Hosteller</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <input type="email" id="email" placeholder="student@sece.ac.in" required>
+        </div>
+        <div class="form-group">
+            <input type="password" id="password" placeholder="Password" required>
+        </div>
+        <div class="form-group">
+            <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+        </div>
+        <p id="msg"></p>
+        <div class="buttons">
+            <button class="cancel" onclick="goBack()">Back</button>
+            <button class="signup" onclick="createAccount()">Create Account</button>
+        </div>
+        <div class="link">
+            <a href="loginpage.html">Already have an account? Login</a>
+        </div>
+    </div>
+    <script>
+        function updateEmailPlaceholder() {
+            const userType = document.getElementById('userType').value;
+            const statusGroup = document.getElementById('statusGroup');
+            const email = document.getElementById('email');
+            
+            if (userType === 'Student') {
+                statusGroup.style.display = 'block';
+                email.placeholder = 'student@sece.ac.in';
+            } else {
+                statusGroup.style.display = 'none';
+                email.placeholder = userType.toLowerCase() + '@sece.ac.in';
+            }
+        }
+
+        function goBack() { window.location.href = 'loginpage.html'; }
+
+        function createAccount() {
+            const userType = document.getElementById('userType').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const status = document.getElementById('status').value;
+            const msg = document.getElementById('msg');
+
+            if (!email || !password || !confirmPassword) {
+                msg.textContent = 'Please fill all fields';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                msg.textContent = 'Passwords do not match';
+                return;
+            }
+
+            if (password.length < 6) {
+                msg.textContent = 'Password must be at least 6 characters';
+                return;
+            }
+
+            // Get existing accounts
+            let accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
+            
+            // Check if email already exists
+            if (accounts.find(acc => acc.email === email)) {
+                msg.textContent = 'Email already exists';
+                return;
+            }
+
+            // Create new account
+            const newAccount = {
+                email: email,
+                password: password,
+                userType: userType,
+                status: userType === 'Student' ? status : null
+            };
+
+            accounts.push(newAccount);
+            localStorage.setItem('accounts', JSON.stringify(accounts));
+
+            alert('Account created successfully!');
+            window.location.href = 'loginpage.html';
+        }
+
+        updateEmailPlaceholder();
+    </script>
+</body>
+</html>
