@@ -1,0 +1,9 @@
+@echo off
+echo Starting College Leave Management System...
+echo.
+echo Installing dependencies...
+npm install
+echo.
+echo Starting server...
+npm start
+pause
